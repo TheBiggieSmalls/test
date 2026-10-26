@@ -44,41 +44,44 @@
         }
 
         // De logica voor de afspraak
-        document.getElementById('addCalendar').addEventListener('click', async () => {
-            // 1. Genereer de ICS inhoud in het geheugen
-            const icsData = `BEGIN:VCALENDAR
+       document.getElementById('addCalendar').addEventListener('click', async () => {
+    try {
+        // 1. Maak de ICS-inhoud aan
+        const icsData = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Test PWA//NL
 BEGIN:VEVENT
-SUMMARY:Test Afspraak vanuit PWA
-DESCRIPTION:Dit is een test afspraak gemaakt in de PWA zonder downloads-map vervuiling.
-LOCATION:Thuis / Online
+SUMMARY:Test Afspraak PWA
+DESCRIPTION:Werkt zonder downloads-map!
 DTSTART:20260601T100000Z
 DTEND:20260601T110000Z
 END:VEVENT
 END:VCALENDAR`;
 
-            // 2. Maak een tijdelijk bestand in het werkgeheugen (Blob)
-            const file = new File([icsData], "afspraak.ics", { type: "text/calendar" });
+        // 2. Zet om naar een bestand in het geheugen
+        const file = new File([icsData], "afspraak.ics", { type: "text/calendar" });
 
-            // 3. Controleer of Web Share API bestanden ondersteunt
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: 'Test Afspraak',
-                        text: 'Open deze afspraak in je agenda'
-                    });
-                    console.log('Succesvol gedeeld met agenda!');
-                } catch (error) {
-                    if (error.name !== 'AbortError') {
-                        alert('Fout bij delen: ' + error.message);
-                    }
-                }
-            } else {
-                alert('Jouw browser ondersteunt het delen van bestanden via de Web Share API niet.');
-            }
-        });
+        const shareData = {
+            files: [file],
+            title: 'Afspraak inplannen',
+            text: 'Open deze afspraak direct in je agenda'
+        };
+
+        // 3. Controleer of het apparaat dit ondersteunt
+        if (navigator.canShare && navigator.canShare(shareData)) {
+            await navigator.share(shareData);
+            console.log('Succesvol gedeeld!');
+        } else {
+            alert('Dit apparaat kan helaas geen bestanden delen via de browser.');
+        }
+    } catch (error) {
+        // Als de gebruiker zelf op annuleren drukt, is dat geen echte fout
+        if (error.name !== 'AbortError') {
+            console.error('Deelfout:', error);
+            alert('Fout bij delen: ' + error.message + '\n\nControleer of je via een veilige https:// verbinding kijkt.');
+        }
+    }
+});
     </script>
 </body>
 </html>
