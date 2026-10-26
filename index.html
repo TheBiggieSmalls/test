@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Agenda Test</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px 20px;
+            background-color: #f4f4f9;
+        }
+        button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:active {
+            background-color: #0b7dda;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Agenda Test PWA</h1>
+    <p>Klik op de knop om een afspraak direct naar je Android-agenda te sturen zonder downloads.</p>
+    
+    <br>
+    <button id="addCalendar">Voeg afspraak toe aan agenda</button>
+
+    <script>
+        // Registreer de Service Worker zodat het een PWA wordt
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('Service Worker geregistreerd!'))
+                .catch((err) => console.log('Registratie mislukt:', err));
+        }
+
+        // De logica voor de afspraak
+        document.getElementById('addCalendar').addEventListener('click', async () => {
+            // 1. Genereer de ICS inhoud in het geheugen
+            const icsData = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test PWA//NL
+BEGIN:VEVENT
+SUMMARY:Test Afspraak vanuit PWA
+DESCRIPTION:Dit is een test afspraak gemaakt in de PWA zonder downloads-map vervuiling.
+LOCATION:Thuis / Online
+DTSTART:20260601T100000Z
+DTEND:20260601T110000Z
+END:VEVENT
+END:VCALENDAR`;
+
+            // 2. Maak een tijdelijk bestand in het werkgeheugen (Blob)
+            const file = new File([icsData], "afspraak.ics", { type: "text/calendar" });
+
+            // 3. Controleer of Web Share API bestanden ondersteunt
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Test Afspraak',
+                        text: 'Open deze afspraak in je agenda'
+                    });
+                    console.log('Succesvol gedeeld met agenda!');
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        alert('Fout bij delen: ' + error.message);
+                    }
+                }
+            } else {
+                alert('Jouw browser ondersteunt het delen van bestanden via de Web Share API niet.');
+            }
+        });
+    </script>
+</body>
+</html>
