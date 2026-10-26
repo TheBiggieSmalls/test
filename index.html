@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWA Agenda Test</title>
+    <title>Samsung Agenda PWA Test</title>
     <link rel="manifest" href="manifest.json">
     <style>
         body {
@@ -29,59 +29,33 @@
 </head>
 <body>
 
-    <h1>Agenda Test PWA</h1>
-    <p>Klik op de knop om een afspraak direct naar je Android-agenda te sturen zonder downloads.</p>
+    <h1>Samsung Agenda Test PWA</h1>
+    <p>Klik op de knop om de Samsung Agenda direct te openen met een ingevulde afspraak.</p>
     
     <br>
-    <button id="addCalendar">Voeg afspraak toe aan agenda</button>
+    <button id="openSamsungCalendar">Open Samsung Agenda</button>
 
     <script>
-        // Registreer de Service Worker zodat het een PWA wordt
+        // Registreer de Service Worker zodat het een werkende PWA blijft
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
                 .then(() => console.log('Service Worker geregistreerd!'))
                 .catch((err) => console.log('Registratie mislukt:', err));
         }
 
-        // De logica voor de afspraak
-       document.getElementById('addCalendar').addEventListener('click', async () => {
-    try {
-        // 1. Maak de ICS-inhoud aan
-        const icsData = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Test PWA//NL
-BEGIN:VEVENT
-SUMMARY:Test Afspraak PWA
-DESCRIPTION:Werkt zonder downloads-map!
-DTSTART:20260601T100000Z
-DTEND:20260601T110000Z
-END:VEVENT
-END:VCALENDAR`;
+        // Zodra je op de knop klikt, wordt de Samsung Agenda direct aangeroepen
+        document.getElementById('openSamsungCalendar').addEventListener('click', () => {
+            const title = encodeURIComponent("Test Afspraak PWA");
+            const description = encodeURIComponent("Beschrijving van de afspraak");
+            const beginTime = "20260601T100000Z";
+            const endTime = "20260601T110000Z";
 
-        // 2. Zet om naar een bestand in het geheugen
-        const file = new File([icsData], "afspraak.ics", { type: "text/calendar" });
+            // Android Intent link specifiek voor de Samsung Agenda app
+            const intentUrl = `intent://com.android.calendar/#Intent;action=android.intent.action.EDIT;type=vnd.android.cursor.item/event;S.title=${title};S.description=${description};l.beginTime=${beginTime};l.endTime=${endTime};package=com.samsung.android.calendar;end;`;
 
-        const shareData = {
-            files: [file],
-            title: 'Afspraak inplannen',
-            text: 'Open deze afspraak direct in je agenda'
-        };
-
-        // 3. Controleer of het apparaat dit ondersteunt
-        if (navigator.canShare && navigator.canShare(shareData)) {
-            await navigator.share(shareData);
-            console.log('Succesvol gedeeld!');
-        } else {
-            alert('Dit apparaat kan helaas geen bestanden delen via de browser.');
-        }
-    } catch (error) {
-        // Als de gebruiker zelf op annuleren drukt, is dat geen echte fout
-        if (error.name !== 'AbortError') {
-            console.error('Deelfout:', error);
-            alert('Fout bij delen: ' + error.message + '\n\nControleer of je via een veilige https:// verbinding kijkt.');
-        }
-    }
-});
+            // Stuur de browser door naar de Intent, wat de agenda opent
+            window.location.href = intentUrl;
+        });
     </script>
 </body>
 </html>
